@@ -15,7 +15,7 @@ namespace psiim.Models
         public DateTime Date { get; set; }
         public double Cost { get; set; }
         public bool IsAccepted { get; set; }
-        public byte[] Duration { get; set; } = null!;
+        public int Duration { get; set; }
 
         public virtual Client Client { get; set; } = null!;
         public virtual ICollection<ReservedTable> ReservedTables { get; set; }

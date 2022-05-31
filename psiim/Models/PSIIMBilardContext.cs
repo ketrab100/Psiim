@@ -29,7 +29,7 @@ namespace psiim.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=PSIIMBilard.mssql.somee.com;Database=PSIIMBilard;User Id=Kabanos_SQLLogin_1;Password=4o7idiiwda;");
+                optionsBuilder.UseSqlServer("Server=PSIIMBilard.mssql.somee.com;Database=PSIIMBilard;User ID = Kabanos_SQLLogin_1;password=4o7idiiwda;");
             }
         }
 
@@ -154,10 +154,7 @@ namespace psiim.Models
                     .HasColumnType("date")
                     .HasColumnName("date");
 
-                entity.Property(e => e.Duration)
-                    .IsRowVersion()
-                    .IsConcurrencyToken()
-                    .HasColumnName("duration");
+                entity.Property(e => e.Duration).HasColumnName("duration");
 
                 entity.Property(e => e.IsAccepted).HasColumnName("is_accepted");
 

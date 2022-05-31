@@ -41,7 +41,6 @@ namespace psiim.Controllers
             var clubs = _context.Clubs.ToList();
             return new JsonResult(clubs);
         }
-
         protected string UserId()
         {
             var principal = HttpContext.User;

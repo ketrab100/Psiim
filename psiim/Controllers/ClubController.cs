@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using Newtonsoft.Json;
 using psiim.Models;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace psiim.Controllers
 {
@@ -18,18 +16,29 @@ namespace psiim.Controllers
         {
             _context = pSIIMBilardContext;
         }
-
+        /// <summary>
+        /// Zwraca klub do którego adminem jest aktualnie zalogowany użytkownik
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-       
-        [Produces(typeof(List<Club>))]
-        public IActionResult getClubs()
+        [Route("getClub")]
+        [Authorize(Roles ="Admin")]
+        public IActionResult getClub()
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return new JsonResult("Nie masz uprawnień");
-            }
             int userId = Int32.Parse(UserId().ToString()); 
-            var clubs = _context.Clubs.Where(c=>c.Admins.FirstOrDefault().PersonDataId == userId).ToList();
+            var clubs = _context.Clubs.Include(t=>t.Tables).FirstOrDefault(c=>c.Admins.FirstOrDefault().PersonDataId == userId);
+            return new JsonResult(clubs);
+        }
+        /// <summary>
+        /// Zwraca listę wszytskich klubów w systemie
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("clubsList")]
+        [AllowAnonymous]
+        public IActionResult clubsList()
+        {
+            var clubs = _context.Clubs.ToList();
             return new JsonResult(clubs);
         }
 

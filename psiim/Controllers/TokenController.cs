@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using psiim.Models;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace psiim.Controllers
 {
@@ -15,11 +16,15 @@ namespace psiim.Controllers
     {
         public IConfiguration _configuration;
         private PSIIMBilardContext _context;
+        private IDistributedCache _cache;
+        private IHttpContextAccessor _httpContextAccessor;
 
-        public TokenController(IConfiguration config, PSIIMBilardContext pSIIMBilardContext)
+        public TokenController(IConfiguration config, PSIIMBilardContext pSIIMBilardContext, IDistributedCache cache,IHttpContextAccessor httpContextAccessor)
         {
             _configuration = config;
             _context = pSIIMBilardContext;
+            _cache = cache;
+            _httpContextAccessor = httpContextAccessor;
         }
         [HttpPost]
         public async Task<IActionResult> Post(string login, string password)
@@ -62,11 +67,26 @@ namespace psiim.Controllers
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(20),
+                    expires: DateTime.UtcNow.AddMinutes(30),
                     signingCredentials: signIn);
 
                 return Ok(new JwtSecurityTokenHandler().WriteToken(token));
             }
         }
+        [HttpGet]
+        [Authorize]
+        [Route("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            string token = _httpContextAccessor.HttpContext.Request.Headers["authorization"];
+            //await _cache.SetStringAsync(getKey(token), " ", new DistributedCacheEntryOptions { AbsoluteExpiration = DateTime.UtcNow });
+            return Ok();
+        }
+        private string getKey(string token)
+        {
+            string t = token.Split(" ").Last();
+            return ($"tokens:{t}:deactivated");
+        }
+
     }
 }

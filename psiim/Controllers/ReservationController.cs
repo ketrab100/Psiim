@@ -29,7 +29,7 @@ namespace psiim.Controllers
             return principal?.Claims?.SingleOrDefault(p => p.Type == "UserName")?.Value;
         }
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetReservations()
         {
             var reservations = _context.Reservations.ToList();
             return new JsonResult(reservations);
@@ -45,7 +45,7 @@ namespace psiim.Controllers
             return new JsonResult(reservation);
         }
         [HttpPost("{reservation}")]
-        public IActionResult Create([FromBody] Reservation reservation)
+        public IActionResult CreateReservation([FromBody] Reservation reservation)
         {
             try
             {
@@ -90,6 +90,23 @@ namespace psiim.Controllers
                 return new JsonResult(e);
             }
             return new JsonResult(reservation);
+        }
+        [HttpPost("reservation")]
+        public IActionResult acceptReservation(Reservation reservation)
+        {
+            try
+            {
+                reservation.IsAccepted = true;
+                _context.Reservations.Update(reservation);
+                _context.SaveChanges(true);
+            }
+            catch(Exception e)
+            {
+                return new JsonResult(e);
+            }
+            return new JsonResult(reservation);
+
+        
         }
     }
     

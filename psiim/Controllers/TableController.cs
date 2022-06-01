@@ -31,7 +31,7 @@ namespace psiim.Controllers
             return new JsonResult(tables);
         }
         /// <summary>
-        /// Lista stołów wolynych o danej godzinie w konkretnym klubie
+        /// Lista stołów wolnych o danej godzinie w konkretnym klubie
         /// </summary>
         /// <param name="clubId"></param>
         /// <param name="dateTime"></param>

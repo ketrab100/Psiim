@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj": {}
+    "C:\\Users\\MaciejRadziszewski(2\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj": {
+    "C:\\Users\\MaciejRadziszewski(2\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj",
+        "projectUniqueName": "C:\\Users\\MaciejRadziszewski(2\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj",
         "projectName": "psiim",
-        "projectPath": "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj",
-        "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\obj\\",
+        "projectPath": "C:\\Users\\MaciejRadziszewski(2\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj",
+        "packagesPath": "C:\\Users\\MaciejRadziszewski(2\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\MaciejRadziszewski(2\\Documents\\GitHub\\Psiim\\psiim\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Bartek\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\MaciejRadziszewski(2\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -93,7 +89,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.105\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.101\\RuntimeIdentifierGraph.json"
         }
       }
     }

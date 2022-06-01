@@ -5,8 +5,21 @@ namespace psiim.Models
 {
     public partial class Reservation
     {
+
         public Reservation()
         {
+            ReservedTables = new HashSet<ReservedTable>();
+        }
+
+
+        public Reservation(int clientId, DateTime date, double cost, bool isAccepted, byte[] duration, Client client)
+        {
+            ClientId = clientId;
+            Date = date;
+            Cost = cost;
+            IsAccepted = isAccepted;
+            Duration = duration;
+            Client = client;
             ReservedTables = new HashSet<ReservedTable>();
         }
 

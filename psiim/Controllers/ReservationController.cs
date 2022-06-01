@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using psiim.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace psiim.Controllers
 {
@@ -26,9 +27,11 @@ namespace psiim.Controllers
                 }
 
             }
-            return principal?.Claims?.SingleOrDefault(p => p.Type == "UserName")?.Value;
+            return principal?.Claims?.SingleOrDefault(p => p.Type == "Id")?.Value;
         }
         [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [Route("getReservations")]
         public IActionResult GetReservations()
         {
             var reservations = _context.Reservations.ToList();
@@ -37,16 +40,20 @@ namespace psiim.Controllers
         }
 
         [HttpGet("{id}")]
-        [Produces(typeof(Reservation))]
         public IActionResult GetReservationById([FromRoute] int id)
         {
             var reservation = _context.Reservations.FirstOrDefault(r => r.ReservationId.Equals(id));
             if(reservation==null) return NotFound();
             return new JsonResult(reservation);
         }
-        [HttpPost("{reservation}")]
-        public IActionResult CreateReservation([FromBody] Reservation reservation)
+        [HttpPost]
+        [Authorize(Roles = "Client")]
+        [Route("createReservation")]
+        public IActionResult CreateReservation([FromRoute] DateTime dateTime,[FromBody] Table table)
         {
+            int userId = Int32.Parse(UserId().ToString());
+            byte[] xd = new byte[8];
+            Reservation reservation = new Reservation(userId, dateTime, 15.99, false, xd, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
             try
             {
                 _context.Reservations.Add(reservation);
@@ -56,6 +63,7 @@ namespace psiim.Controllers
             {
                 return new JsonResult(e);
             }
+            //return new JsonResult(null);
             return new JsonResult(reservation);
            
         }
@@ -91,6 +99,45 @@ namespace psiim.Controllers
             }
             return new JsonResult(reservation);
         }
+        [HttpGet]
+        [Route("getUnacceptedReservations")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetUnacceptedReservations()
+        {
+            var unaccepted = new List<Reservation>();
+            int userId = Int32.Parse(UserId().ToString());
+            try
+            {   
+                var admin = _context.Admins.FirstOrDefault(a => a.AdminId == userId);
+                var club = _context.Clubs.Include(t => t.Tables).Where(c => c.Admins.Contains(admin)).FirstOrDefault();
+                var tables = club.Tables;
+                var reservations = new List<Reservation>();
+                foreach (var table in tables)
+                {
+                    var reservedTables = table.ReservedTables;
+                    foreach(var reservedTable in reservedTables)
+                    {
+                        reservations.Add(reservedTable.Reservation);
+                    }
+                }
+                
+
+                foreach (var reservation in reservations)
+                {
+                    if(reservation.IsAccepted == false)
+                    {
+                        unaccepted.Append(reservation);
+                    }
+                }
+               
+            }
+            catch(Exception e)
+            {
+                return new JsonResult(e);
+            }
+            return new JsonResult(unaccepted);
+        }
+
         [HttpPost("reservation")]
         public IActionResult acceptReservation(Reservation reservation)
         {

@@ -6,6 +6,8 @@ using System.Security.Claims;
 using System.Text;
 using psiim.Models;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace psiim.Controllers
 {
@@ -18,89 +20,126 @@ namespace psiim.Controllers
         {
             _context = pSIIMBilardContext;
         }
-
+        /// <summary>
+        /// Zwraca informacje o kliencie  
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
-        public IActionResult getAccountData(int id)
+        [Route("getAccountData")]
+        [Authorize(Roles = "Client")]
+        public IActionResult getAccountData()
         {
+            int userId = Int32.Parse(UserId().ToString());
             PeopleDatum user = new PeopleDatum();
-            string role = "";
             try
             {
-                user = _context.PeopleData.FirstOrDefault(p => p.PersonDataId == id);
-                var user_role = _context.Admins.FirstOrDefault(p => p.PersonDataId == id);
-                role = "";
-                if (user_role == null)
-                {
-                    role = "Client";
-                }
-                else
-                {
-                    role = "Admin";
-                }
-
+                user = _context.PeopleData.FirstOrDefault(p => p.PersonDataId == userId);
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 400;
+                return json;
             };
-            return new JsonResult(new { role = role, user = user });
+            return new JsonResult(user);
         }
+        /// <summary>
+        /// Tworzenie nowego clienta
+        /// </summary>
+        /// <param name="peopleDatum"></param>
+        /// <returns></returns>
         [HttpPost]
-        [Route("create")]
-        public IActionResult createClientAccount(Client client)
+        [Route("createClientAccount")]
+        [AllowAnonymous]
+        public IActionResult createClientAccount(PeopleDatum peopleDatum)
         {
+            Client client = new Client();
             try
             {
-                _context.Clients.Add(client);
-                _context.SaveChanges(true);
+                var p = _context.PeopleData.FirstOrDefault(p => p.Login == peopleDatum.Login);
+                if (p != null)
+                {
+                    var json = Json("User with this login exist");
+                    json.StatusCode = 400;
+                    return (json);
+                }
+                var person = _context.PeopleData.Add(peopleDatum);
+                client.PersonData = person.Entity;
+                _context.Add(client);
+                _context.SaveChanges();
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 400;
+                return json;
             };
             return new JsonResult(client);
 
         }
+        /// <summary>
+        /// Edycja danych personalnych klienta
+        /// Jeżeli id clienta nie jest zgodne z danymi personalnymi w paramatrze zwraca Unauthorized
+        /// </summary>
+        /// <param name="peopleDatum"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("edit")]
+        [Authorize(Roles = "Client")]
         public IActionResult editAccount(PeopleDatum peopleDatum)
         {
+            int userId = Int32.Parse(UserId().ToString());
+            var client = _context.PeopleData.Include(c=>c.Clients).FirstOrDefault(c=>c.PersonDataId == peopleDatum.PersonDataId);
+            if (client.Clients.FirstOrDefault().ClientId != userId)
+            {
+                return Unauthorized();
+            }
+            else
+            {
+                try
+                {
+                    client.FirstName = peopleDatum.FirstName;
+                    client.SecondName = peopleDatum.SecondName;
+                    client.BirthDate = peopleDatum.BirthDate;
+                    client.PhoneNumber = peopleDatum.PhoneNumber;
+                    client.Login = peopleDatum.Login;
+                    client.HashPassword = peopleDatum.HashPassword;
+                    _context.SaveChanges(true);
+                }
+                catch (Exception e)
+                {
+                    var json = Json(e.Message);
+                    json.StatusCode = 400;
+                    return json;
+                };
+                return new JsonResult(peopleDatum);
+            }
+        }
+        /// <summary>
+        /// Usuwanie konta klienta
+        /// </summary>
+        /// <param name="peopleDatum"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("deleteAccount")]
+        [Authorize(Roles ="Client")]
+        public IActionResult deleteAccount()
+        {
+            int userId = Int32.Parse(UserId().ToString());
             try
             {
-                _context.PeopleData.Update(peopleDatum);
+                var client = _context.PeopleData.Include(a=>a.Admins).FirstOrDefault(d => d.PersonDataId == userId);
+                _context.PeopleData.Remove(client);
                 _context.SaveChanges(true);
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 400;
+                return json;
             };
-            return new JsonResult(peopleDatum);
-
-        }
-        [HttpDelete]
-        public IActionResult deleteAccount(PeopleDatum peopleDatum)
-        {
-            try
-            {
-                _context.PeopleData.Remove(peopleDatum);
-                var user_role = _context.Admins.FirstOrDefault(p => p.PersonDataId == peopleDatum.PersonDataId);
-                //if (user_role == null)
-                //{
-                //    _context.Clients.Remove(peopleDatum.Clients);
-                //}
-                //else
-                //{
-                //    _context.Admins.Remove(peopleDatum.Admins);
-                //}
-                //_context.SaveChanges(true);
-
-            }
-            catch (Exception e)
-            {
-                return new JsonResult(e);
-            };
-            return new JsonResult(peopleDatum);
-
+            return new OkResult();
         }
         protected string UserId()
         {

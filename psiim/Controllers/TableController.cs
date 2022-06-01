@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using psiim.Models;
@@ -17,15 +15,47 @@ namespace psiim.Controllers
         {
             _context = pSIIMBilardContext;
         }
-
+        /// <summary>
+        /// Lista wszystkich stołów w klubie 
+        /// </summary>
+        /// <param name="club"></param>
+        /// <returns></returns>
         [HttpGet]
-        [Produces(typeof(List<Table>))]
-        public IActionResult getTables([FromBody]Club club)
+        [Authorize(Roles = "Admin,Client")]
+        [Route("getTables")]
+        public IActionResult getTables(Club club)
         {
             var tables = club.Tables.ToList();
             return new JsonResult(tables);
-
         }
+        /// <summary>
+        /// Lista stołów wolnych o danej godzinie w konkretnym klubie
+        /// </summary>
+        /// <param name="clubId"></param>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("getNotReservedTables")]
+        public IActionResult getNotReservedTables(int clubId, DateTime dateTime)
+        {
+            var reservations = _context.Reservations.Where(r => r.Date == dateTime).ToList();
+            var reservedTables = new List<Table>();
+
+            foreach(var r in reservations)
+            {
+                foreach(var rt in r.ReservedTables)
+                {
+                    reservedTables.Add(rt.Table);
+                }
+            }
+            var tables = _context.Tables.Where(t=>t.ClubId==clubId).ToList().Except(reservedTables);
+            
+            return new JsonResult(tables);
+        }
+
+
+
         [HttpPost("{table}")]
         public IActionResult createTable(Table table)
         {

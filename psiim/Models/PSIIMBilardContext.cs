@@ -29,7 +29,7 @@ namespace psiim.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=PSIIMBilard.mssql.somee.com;Database=PSIIMBilard;User Id=Kabanos_SQLLogin_1;Password=4o7idiiwda;");
+                optionsBuilder.UseSqlServer("Server=PSIIMBilard.mssql.somee.com;User ID=Kabanos_SQLLogin_1;Password=4o7idiiwda;");
             }
         }
 
@@ -39,9 +39,7 @@ namespace psiim.Models
             {
                 entity.ToTable("admins");
 
-                entity.Property(e => e.AdminId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("admin_id");
+                entity.Property(e => e.AdminId).HasColumnName("admin_id");
 
                 entity.Property(e => e.ClubId).HasColumnName("club_id");
 
@@ -50,13 +48,11 @@ namespace psiim.Models
                 entity.HasOne(d => d.Club)
                     .WithMany(p => p.Admins)
                     .HasForeignKey(d => d.ClubId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_admins_clubs");
 
                 entity.HasOne(d => d.PersonData)
                     .WithMany(p => p.Admins)
                     .HasForeignKey(d => d.PersonDataId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_admins_people_data");
             });
 
@@ -64,16 +60,13 @@ namespace psiim.Models
             {
                 entity.ToTable("clients");
 
-                entity.Property(e => e.ClientId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("client_id");
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.PersonDataId).HasColumnName("person_data_id");
 
                 entity.HasOne(d => d.PersonData)
                     .WithMany(p => p.Clients)
                     .HasForeignKey(d => d.PersonDataId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_clients_people_data");
             });
 
@@ -81,9 +74,7 @@ namespace psiim.Models
             {
                 entity.ToTable("clubs");
 
-                entity.Property(e => e.ClubId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("club_id");
+                entity.Property(e => e.ClubId).HasColumnName("club_id");
 
                 entity.Property(e => e.City)
                     .HasMaxLength(50)
@@ -104,9 +95,7 @@ namespace psiim.Models
 
                 entity.ToTable("people_data");
 
-                entity.Property(e => e.PersonDataId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("person_data_id");
+                entity.Property(e => e.PersonDataId).HasColumnName("person_data_id");
 
                 entity.Property(e => e.BirthDate)
                     .HasColumnType("date")
@@ -142,9 +131,7 @@ namespace psiim.Models
             {
                 entity.ToTable("reservations");
 
-                entity.Property(e => e.ReservationId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("reservation_id");
+                entity.Property(e => e.ReservationId).HasColumnName("reservation_id");
 
                 entity.Property(e => e.ClientId).HasColumnName("client_id");
 
@@ -154,17 +141,13 @@ namespace psiim.Models
                     .HasColumnType("date")
                     .HasColumnName("date");
 
-                entity.Property(e => e.Duration)
-                    .IsRowVersion()
-                    .IsConcurrencyToken()
-                    .HasColumnName("duration");
+                entity.Property(e => e.Duration).HasColumnName("duration");
 
                 entity.Property(e => e.IsAccepted).HasColumnName("is_accepted");
 
                 entity.HasOne(d => d.Client)
                     .WithMany(p => p.Reservations)
                     .HasForeignKey(d => d.ClientId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_reservations_clients");
             });
 
@@ -172,9 +155,7 @@ namespace psiim.Models
             {
                 entity.ToTable("reserved_tables");
 
-                entity.Property(e => e.ReservedTableId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("reserved_table_id");
+                entity.Property(e => e.ReservedTableId).HasColumnName("reserved_table_id");
 
                 entity.Property(e => e.ReservationId).HasColumnName("reservation_id");
 
@@ -183,13 +164,11 @@ namespace psiim.Models
                 entity.HasOne(d => d.Reservation)
                     .WithMany(p => p.ReservedTables)
                     .HasForeignKey(d => d.ReservationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_reserved_tables_reservations");
 
                 entity.HasOne(d => d.Table)
                     .WithMany(p => p.ReservedTables)
                     .HasForeignKey(d => d.TableId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_reserved_tables_tables");
             });
 
@@ -197,9 +176,7 @@ namespace psiim.Models
             {
                 entity.ToTable("tables");
 
-                entity.Property(e => e.TableId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("table_id");
+                entity.Property(e => e.TableId).HasColumnName("table_id");
 
                 entity.Property(e => e.ClubId).HasColumnName("club_id");
 
@@ -214,7 +191,6 @@ namespace psiim.Models
                 entity.HasOne(d => d.Club)
                     .WithMany(p => p.Tables)
                     .HasForeignKey(d => d.ClubId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_tables_clubs");
             });
 

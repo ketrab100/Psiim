@@ -12,7 +12,7 @@ namespace psiim.Models
         }
 
 
-        public Reservation(int clientId, DateTime date, double cost, bool isAccepted, byte[] duration, Client client)
+        public Reservation(int clientId, DateTime date, double cost, bool isAccepted, int duration, Client client)
         {
             ClientId = clientId;
             Date = date;

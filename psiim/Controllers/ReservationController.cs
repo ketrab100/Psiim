@@ -42,7 +42,7 @@ namespace psiim.Controllers
         //    var reservations = _context.Reservations.ToList();
         //    return new JsonResult(reservations);
            
-        //}
+        }
 
         [HttpGet("{id}")]
         public IActionResult GetReservationById([FromRoute] int id)
@@ -51,24 +51,29 @@ namespace psiim.Controllers
             if(reservation==null) return NotFound();
             return new JsonResult(reservation);
         }
+        /// <summary>
+        /// Tworzenie rezerwacji na konkretny stół danego dnia
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="table"></param>
+        /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = "Client")]
         [Route("createReservation")]
-        public IActionResult CreateReservation([FromRoute] DateTime dateTime,[FromBody] Table table)
+        public IActionResult CreateReservation(string dateTimeString, dynamic table)
         {
             int userId = Int32.Parse(UserId().ToString());
-            byte[] xd = new byte[8];
-            Reservation reservation = new Reservation(userId, dateTime, 15.99, false, xd, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
+            DateTime dateTime = Convert.ToDateTime(dateTimeString);
+            Reservation reservation = new Reservation(userId, dateTime, 15.99, false, 1, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
             try
             {
                 _context.Reservations.Add(reservation);
                 _context.SaveChanges();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return new JsonResult(e);
             }
-            //return new JsonResult(null);
             return new JsonResult(reservation);
            
         }

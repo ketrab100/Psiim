@@ -99,26 +99,5 @@ namespace psiim.Controllers
             }
             return new JsonResult(table);
         }
-
-        [HttpGet]
-        [AllowAnonymous]
-        [Route("getNotReservedTables")]
-        public IActionResult getNotReservedTables(int clubId, DateTime dateTime)
-        {
-            var reservations = _context.Reservations.Where(r => r.Date == dateTime).ToList();
-            var reservedTables = new List<Table>();
-
-            foreach (var r in reservations)
-            {
-                foreach (var rt in r.ReservedTables)
-                {
-                    reservedTables.Add(rt.Table);
-                }
-            }
-            var tables = _context.Tables.Where(t => t.ClubId == clubId).ToList().Except(reservedTables);
-            
-
-            return new JsonResult(tables);
-        }
     }
 }

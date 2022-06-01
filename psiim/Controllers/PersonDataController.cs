@@ -18,41 +18,45 @@ namespace psiim.Controllers
         {
             _context = pSIIMBilardContext;
         }
-
+        /// <summary>
+        /// Zwraca informacje o kliencie  
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
-        public IActionResult getAccountData(int id)
+        [Route("getAccountData")]
+        [Authorize(Roles = "Client")]
+        public IActionResult getAccountData()
         {
+            int userId = Int32.Parse(UserId().ToString());
             PeopleDatum user = new PeopleDatum();
-            string role = "";
             try
             {
-                user = _context.PeopleData.FirstOrDefault(p => p.PersonDataId == id);
-                var user_role = _context.Admins.FirstOrDefault(p => p.PersonDataId == id);
-                role = "";
-                if (user_role == null)
-                {
-                    role = "Client";
-                }
-                else
-                {
-                    role = "Admin";
-                }
-
+                user = _context.PeopleData.FirstOrDefault(p => p.PersonDataId == userId);
             }
             catch (Exception e)
             {
                 return new JsonResult(e);
             };
-            return new JsonResult(new { role = role, user = user });
+            return new JsonResult(user);
         }
+        /// <summary>
+        /// Tworzenie nowego clienta
+        /// </summary>
+        /// <param name="peopleDatum"></param>
+        /// <returns></returns>
         [HttpPost]
-        [Route("create")]
-        public IActionResult createClientAccount(Client client)
+        [Route("createClientAccount")]
+        [AllowAnonymous]
+        public IActionResult createClientAccount(PeopleDatum peopleDatum)
         {
+            Client client = new Client();
             try
             {
-                _context.Clients.Add(client);
-                _context.SaveChanges(true);
+                var person = _context.PeopleData.Add(peopleDatum);
+                client.PersonData = person.Entity;
+                _context.Add(client);
+                _context.SaveChanges();
             }
             catch (Exception e)
             {
@@ -61,46 +65,66 @@ namespace psiim.Controllers
             return new JsonResult(client);
 
         }
+        /// <summary>
+        /// Edycja danych personalnych klienta
+        /// Jeżeli id clienta nie jest zgodne z danymi personalnymi w paramatrze zwraca Unauthorized
+        /// </summary>
+        /// <param name="peopleDatum"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("edit")]
+        [Authorize(Roles = "Client")]
         public IActionResult editAccount(PeopleDatum peopleDatum)
         {
-            try
+            int userId = Int32.Parse(UserId().ToString());
+            var client = _context.Clients.FirstOrDefault(c=>c.PersonData == peopleDatum);
+            if (client.ClientId != userId)
             {
-                _context.PeopleData.Update(peopleDatum);
-                _context.SaveChanges(true);
+                return Unauthorized();
             }
-            catch (Exception e)
+            else
             {
-                return new JsonResult(e);
-            };
-            return new JsonResult(peopleDatum);
-
+                try
+                {
+                    _context.PeopleData.Update(peopleDatum);
+                    _context.SaveChanges(true);
+                }
+                catch (Exception e)
+                {
+                    return new JsonResult(e);
+                };
+                return new JsonResult(peopleDatum);
+            }
         }
+        /// <summary>
+        /// Usuwanie konta klienta
+        /// </summary>
+        /// <param name="peopleDatum"></param>
+        /// <returns></returns>
         [HttpDelete]
+        [Route("deleteAccount")]
+        [Authorize(Roles ="Client")]
         public IActionResult deleteAccount(PeopleDatum peopleDatum)
         {
             try
             {
                 _context.PeopleData.Remove(peopleDatum);
                 var user_role = _context.Admins.FirstOrDefault(p => p.PersonDataId == peopleDatum.PersonDataId);
-                //if (user_role == null)
-                //{
-                //    _context.Clients.Remove(peopleDatum.Clients);
-                //}
-                //else
-                //{
-                //    _context.Admins.Remove(peopleDatum.Admins);
-                //}
-                //_context.SaveChanges(true);
-
+                if (user_role == null)
+                {
+                    _context.Clients.Remove(peopleDatum.Clients.FirstOrDefault());
+                }
+                else
+                {
+                    _context.Admins.Remove(peopleDatum.Admins.FirstOrDefault());
+                }
+                _context.SaveChanges(true);
             }
             catch (Exception e)
             {
                 return new JsonResult(e);
             };
-            return new JsonResult(peopleDatum);
-
+            return new OkResult();
         }
         protected string UserId()
         {

@@ -6,6 +6,8 @@ using System.Security.Claims;
 using System.Text;
 using psiim.Models;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace psiim.Controllers
 {
@@ -36,7 +38,9 @@ namespace psiim.Controllers
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 400;
+                return json;
             };
             return new JsonResult(user);
         }
@@ -53,6 +57,13 @@ namespace psiim.Controllers
             Client client = new Client();
             try
             {
+                var p = _context.PeopleData.FirstOrDefault(p => p.Login == peopleDatum.Login);
+                if (p != null)
+                {
+                    var json = Json("User with this login exist");
+                    json.StatusCode = 400;
+                    return (json);
+                }
                 var person = _context.PeopleData.Add(peopleDatum);
                 client.PersonData = person.Entity;
                 _context.Add(client);
@@ -60,7 +71,9 @@ namespace psiim.Controllers
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 400;
+                return json;
             };
             return new JsonResult(client);
 
@@ -77,8 +90,8 @@ namespace psiim.Controllers
         public IActionResult editAccount(PeopleDatum peopleDatum)
         {
             int userId = Int32.Parse(UserId().ToString());
-            var client = _context.Clients.FirstOrDefault(c=>c.PersonData == peopleDatum);
-            if (client.ClientId != userId)
+            var client = _context.PeopleData.Include(c=>c.Clients).FirstOrDefault(c=>c.PersonDataId == peopleDatum.PersonDataId);
+            if (client.Clients.FirstOrDefault().ClientId != userId)
             {
                 return Unauthorized();
             }
@@ -86,12 +99,19 @@ namespace psiim.Controllers
             {
                 try
                 {
-                    _context.PeopleData.Update(peopleDatum);
+                    client.FirstName = peopleDatum.FirstName;
+                    client.SecondName = peopleDatum.SecondName;
+                    client.BirthDate = peopleDatum.BirthDate;
+                    client.PhoneNumber = peopleDatum.PhoneNumber;
+                    client.Login = peopleDatum.Login;
+                    client.HashPassword = peopleDatum.HashPassword;
                     _context.SaveChanges(true);
                 }
                 catch (Exception e)
                 {
-                    return new JsonResult(e);
+                    var json = Json(e.Message);
+                    json.StatusCode = 400;
+                    return json;
                 };
                 return new JsonResult(peopleDatum);
             }
@@ -104,25 +124,20 @@ namespace psiim.Controllers
         [HttpDelete]
         [Route("deleteAccount")]
         [Authorize(Roles ="Client")]
-        public IActionResult deleteAccount(PeopleDatum peopleDatum)
+        public IActionResult deleteAccount()
         {
+            int userId = Int32.Parse(UserId().ToString());
             try
             {
-                _context.PeopleData.Remove(peopleDatum);
-                var user_role = _context.Admins.FirstOrDefault(p => p.PersonDataId == peopleDatum.PersonDataId);
-                if (user_role == null)
-                {
-                    _context.Clients.Remove(peopleDatum.Clients.FirstOrDefault());
-                }
-                else
-                {
-                    _context.Admins.Remove(peopleDatum.Admins.FirstOrDefault());
-                }
+                var client = _context.PeopleData.Include(a=>a.Admins).FirstOrDefault(d => d.PersonDataId == userId);
+                _context.PeopleData.Remove(client);
                 _context.SaveChanges(true);
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 400;
+                return json;
             };
             return new OkResult();
         }

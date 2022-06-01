@@ -48,13 +48,11 @@ namespace psiim.Models
                 entity.HasOne(d => d.Club)
                     .WithMany(p => p.Admins)
                     .HasForeignKey(d => d.ClubId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_admins_clubs");
 
                 entity.HasOne(d => d.PersonData)
                     .WithMany(p => p.Admins)
                     .HasForeignKey(d => d.PersonDataId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_admins_people_data");
             });
 
@@ -69,7 +67,6 @@ namespace psiim.Models
                 entity.HasOne(d => d.PersonData)
                     .WithMany(p => p.Clients)
                     .HasForeignKey(d => d.PersonDataId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_clients_people_data");
             });
 
@@ -151,7 +148,6 @@ namespace psiim.Models
                 entity.HasOne(d => d.Client)
                     .WithMany(p => p.Reservations)
                     .HasForeignKey(d => d.ClientId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_reservations_clients");
             });
 
@@ -168,13 +164,11 @@ namespace psiim.Models
                 entity.HasOne(d => d.Reservation)
                     .WithMany(p => p.ReservedTables)
                     .HasForeignKey(d => d.ReservationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_reserved_tables_reservations");
 
                 entity.HasOne(d => d.Table)
                     .WithMany(p => p.ReservedTables)
                     .HasForeignKey(d => d.TableId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_reserved_tables_tables");
             });
 
@@ -197,7 +191,6 @@ namespace psiim.Models
                 entity.HasOne(d => d.Club)
                     .WithMany(p => p.Tables)
                     .HasForeignKey(d => d.ClubId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_tables_clubs");
             });
 

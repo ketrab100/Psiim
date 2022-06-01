@@ -2171,23 +2171,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\damin\\.nuget\\packages\\": {},
-    "E:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Bartek\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\PWR\\6semestr\\psiim\\Psiim\\psiim\\psiim.csproj",
+      "projectUniqueName": "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj",
       "projectName": "psiim",
-      "projectPath": "E:\\PWR\\6semestr\\psiim\\Psiim\\psiim\\psiim.csproj",
-      "packagesPath": "C:\\Users\\damin\\.nuget\\packages\\",
-      "outputPath": "E:\\PWR\\6semestr\\psiim\\Psiim\\psiim\\obj\\",
+      "projectPath": "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\psiim.csproj",
+      "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Bartek\\Documents\\GitHub\\Psiim\\psiim\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "E:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\damin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Bartek\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -2263,7 +2263,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.300\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.105\\RuntimeIdentifierGraph.json"
       }
     }
   }

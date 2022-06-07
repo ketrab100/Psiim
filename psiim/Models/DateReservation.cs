@@ -2,7 +2,7 @@
 {
     public class DateReservation
     {
-        public Reservation? Reservation { get; set; }
+        public Table? Table { get; set; }
         public DateTime Date { get; set; }
     }
 }

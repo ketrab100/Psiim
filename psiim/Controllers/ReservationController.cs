@@ -64,15 +64,15 @@ namespace psiim.Controllers
         /// <param name="data"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Roles = "Client")]
+        [Authorize(Roles = "Admin")]
         [Route("createReservation")]
-        public IActionResult CreateReservation([FromBody] dynamic data)
+        public IActionResult CreateReservation([FromBody] DateReservation dateReservation)
         {
-            dynamic deserialized = JObject.Parse(Convert.ToString(data));
-            dynamic table = JObject.Parse(Convert.ToString(deserialized.table));
-            DateTime dateTime = deserialized.dataTime;
+            //dynamic deserialized = JObject.Parse(Convert.ToString(data));
+            //dynamic table = JObject.Parse(Convert.ToString(deserialized.table));
+            //DateTime dateTime = deserialized.dataTime;
             int userId = Int32.Parse(UserId().ToString());
-            Reservation reservation = new Reservation(userId, dateTime, 15.99, false, 1, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
+            Reservation reservation = new Reservation(userId, dateReservation.Date, 15.99, false, 1, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
             try
             {
                 _context.Reservations.Add(reservation);

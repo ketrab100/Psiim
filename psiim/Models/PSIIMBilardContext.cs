@@ -67,6 +67,7 @@ namespace psiim.Models
                 entity.HasOne(d => d.PersonData)
                     .WithMany(p => p.Clients)
                     .HasForeignKey(d => d.PersonDataId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_clients_people_data");
             });
 
@@ -148,6 +149,7 @@ namespace psiim.Models
                 entity.HasOne(d => d.Client)
                     .WithMany(p => p.Reservations)
                     .HasForeignKey(d => d.ClientId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_reservations_clients");
             });
 

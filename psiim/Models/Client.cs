@@ -11,9 +11,9 @@ namespace psiim.Models
         }
 
         public int ClientId { get; set; }
-        public int PersonDataId { get; set; }
+        public int? PersonDataId { get; set; }
 
-        public virtual PeopleDatum PersonData { get; set; } = null!;
+        public virtual PeopleDatum? PersonData { get; set; }
         public virtual ICollection<Reservation> Reservations { get; set; }
     }
 }

@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using psiim.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace psiim.Controllers
 {
@@ -42,6 +43,12 @@ namespace psiim.Controllers
             //    var reservations = _context.Reservations.ToList();
             //    return new JsonResult(reservations);
 
+        //[HttpGet]
+        //public IActionResult GetReservations()
+        //{
+        //    var reservations = _context.Reservations.ToList();
+        //    return new JsonResult(reservations);
+           
         }
 
         [HttpGet("{id}")]
@@ -51,23 +58,30 @@ namespace psiim.Controllers
             if(reservation==null) return NotFound();
             return new JsonResult(reservation);
         }
+        /// <summary>
+        /// Tworzenie rezerwacji na konkretny stół danego dnia
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = "Client")]
         [Route("createReservation")]
-        public IActionResult CreateReservation([FromRoute] DateTime dateTime,[FromBody] Table table)
+        public IActionResult CreateReservation([FromBody] dynamic data)
         {
+            dynamic deserialized = JObject.Parse(Convert.ToString(data));
+            dynamic table = JObject.Parse(Convert.ToString(deserialized.table));
+            DateTime dateTime = deserialized.dataTime;
             int userId = Int32.Parse(UserId().ToString());
-            Reservation reservation = new Reservation(userId, dateTime, 15.99, false,16, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
+            Reservation reservation = new Reservation(userId, dateTime, 15.99, false, 1, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
             try
             {
                 _context.Reservations.Add(reservation);
                 _context.SaveChanges();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return new JsonResult(e);
             }
-            //return new JsonResult(null);
             return new JsonResult(reservation);
            
         }

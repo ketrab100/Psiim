@@ -38,7 +38,7 @@ namespace psiim.Controllers
             catch (Exception e)
             {
                 var json = Json(e.Message);
-                json.StatusCode = 400;
+                json.StatusCode = 500;
                 return json;
             };
             return new JsonResult(user);
@@ -60,7 +60,7 @@ namespace psiim.Controllers
                 if (p != null)
                 {
                     var json = Json("User with this login exists");
-                    json.StatusCode = 400;
+                    json.StatusCode = 500;
                     return (json);
                 }
                 var person = _context.PeopleData.Add(peopleDatum);
@@ -71,7 +71,7 @@ namespace psiim.Controllers
             catch (Exception e)
             {
                 var json = Json(e.Message);
-                json.StatusCode = 400;
+                json.StatusCode = 500;
                 return json;
             };
             return new JsonResult(client);
@@ -96,20 +96,20 @@ namespace psiim.Controllers
             }
             else
             {
+                client.FirstName = peopleDatum.FirstName;
+                client.SecondName = peopleDatum.SecondName;
+                client.BirthDate = peopleDatum.BirthDate;
+                client.PhoneNumber = peopleDatum.PhoneNumber;
+                client.Login = peopleDatum.Login;
+                client.HashPassword = peopleDatum.HashPassword;
                 try
                 {
-                    client.FirstName = peopleDatum.FirstName;
-                    client.SecondName = peopleDatum.SecondName;
-                    client.BirthDate = peopleDatum.BirthDate;
-                    client.PhoneNumber = peopleDatum.PhoneNumber;
-                    client.Login = peopleDatum.Login;
-                    client.HashPassword = peopleDatum.HashPassword;
                     _context.SaveChanges(true);
                 }
                 catch (Exception e)
                 {
                     var json = Json(e.Message);
-                    json.StatusCode = 400;
+                    json.StatusCode = 500;
                     return json;
                 };
                 return new JsonResult(peopleDatum);
@@ -135,7 +135,7 @@ namespace psiim.Controllers
             catch (Exception e)
             {
                 var json = Json(e.Message);
-                json.StatusCode = 400;
+                json.StatusCode = 500;
                 return json;
             };
             return new OkResult();

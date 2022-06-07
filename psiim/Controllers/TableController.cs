@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text;
 using psiim.Models;
+using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace psiim.Controllers
 {
@@ -26,6 +28,23 @@ namespace psiim.Controllers
         public IActionResult getTables(Club club)
         {
             var tables = club.Tables.Where(t=>t.Club == club).ToList();
+            return new JsonResult(tables);
+        }
+
+        /// <summary>
+        /// Lista stołow przypsianych do klubu admina 
+        /// </summary>
+        /// <param name="club"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [Route("getMyTables")]
+        public IActionResult getMyTables()
+        {
+            int userId = int.Parse(UserId());
+            var user = _context.Admins.FirstOrDefault(u => u.AdminId == userId);
+            var clubId = user.ClubId;
+            var tables = _context.Tables.Where(t => t.Club.ClubId == clubId).ToList();
             return new JsonResult(tables);
         }
         /// <summary>
@@ -53,12 +72,25 @@ namespace psiim.Controllers
             
             return new JsonResult(tables);
         }
+        /// <summary>
+        /// Tworzenie nowego stołu
+        /// Obiekt przesyłany w json nie ma w sobie klubu
+        /// Klub jest ustawainy na podstawie admina
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        
 
-
-
-        [HttpPost("{table}")]
-        public IActionResult createTable(Table table)
+        [HttpPost]
+        [Authorize(Roles="Admin")]
+        [Route("createTable")]
+        public IActionResult createTable([FromBody]Table table)
         {
+            int userId = int.Parse(UserId());
+            var user = _context.Admins.Include(u=>u.Club).FirstOrDefault(u => u.AdminId == userId);
+            var club = user.Club;
+            table.Club = club;
+            table.ReservedTables = new List<ReservedTable>();
             try
             {
                 _context.Tables.Add(table);
@@ -66,40 +98,95 @@ namespace psiim.Controllers
             }
             catch(Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 500;
+                return json;
             }
             return new JsonResult(table);
-
         }
-        //do zmiany 
-        [HttpPut("{updatedTable}")]
-        public IActionResult updateTable(Table updatedTable)
+        /// <summary>
+        /// Edycja stołu
+        /// </summary>
+        /// <param name="updatedTable"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Roles ="Admin")]     
+        [Route("updateTable")]
+        public IActionResult updateTable([FromBody]Table updatedTable)
         {
+            int userId = int.Parse(UserId());
+            var user = _context.Admins.Include(u => u.Club).FirstOrDefault(u => u.AdminId == userId);
+            var club = user.Club;
+            if (updatedTable.Club == club)
+            {
+                var json = Json("You can not edit this table");
+                json.StatusCode = 500;
+                return json;
+            }
+            Table table = _context.Tables.FirstOrDefault(t => t.TableId == updatedTable.TableId);
             try
             {
-                _context.Tables.Update(updatedTable);
-                _context.SaveChanges(true);
+                table.Type = updatedTable.Type;
+                table.Number = updatedTable.Number;
+                table.Price = updatedTable.Price;
+                _context.SaveChanges();
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 500;
+                return json;
             }
             return new JsonResult(updatedTable);
         }
-        //???
-        [HttpDelete("{table}")]
-        public IActionResult deleteTable(Table table)
+        /// <summary>
+        /// Usuwanie stołu jeżeli należy do klubu obsuługiwanego przez danego admina
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        [HttpDelete()]
+        [Authorize(Roles ="Admin")]
+        [Route("deleteTable")]
+        public IActionResult deleteTable([FromBody]Table table)
         {
-            try 
+            int userId = int.Parse(UserId());
+            var user = _context.Admins.Include(u => u.Club).FirstOrDefault(u => u.AdminId == userId);
+            var club = user.Club;
+            if(table.ClubId == club.ClubId)
             {
-                _context.Tables.Remove(table);
-                _context.SaveChanges(true);
+                try
+                {
+                    var t = _context.Tables.FirstOrDefault(t => t.TableId == table.TableId);
+                    _context.Tables.Remove(t);
+                    _context.SaveChanges(true);
+                }
+                catch (Exception e)
+                {
+                    var json = Json(e.Message);
+                    json.StatusCode = 500;
+                    return json;
+                }
             }
-            catch (Exception e)
+            else
             {
-                return new JsonResult(e);
+                var json = Json("You can not delete this table");
+                json.StatusCode = 500;
+                return json;
             }
-            return new JsonResult(table);
+            return new OkResult();
+        }
+        protected string UserId()
+        {
+            var principal = HttpContext.User;
+            if (principal?.Claims != null)
+            {
+                foreach (var claim in principal.Claims)
+                {
+                    Log.Debug($"CLAIM TYPE: {claim.Type}; CLAIM VALUE: {claim.Value}");
+                }
+
+            }
+            return principal?.Claims?.SingleOrDefault(p => p.Type == "Id")?.Value;
         }
     }
 }

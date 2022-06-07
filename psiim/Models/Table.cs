@@ -16,7 +16,7 @@ namespace psiim.Models
         public string Type { get; set; } = null!;
         public double Price { get; set; }
 
-        public virtual Club Club { get; set; } = null!;
+        public virtual Club? Club { get; set; }
         public virtual ICollection<ReservedTable> ReservedTables { get; set; }
     }
 }

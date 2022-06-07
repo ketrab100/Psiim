@@ -105,14 +105,15 @@ namespace psiim.Controllers
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns></returns>
-        [HttpGet("getClientReservations/{id}")]
+        [HttpGet]
         [Authorize(Roles = "Client")]
-        //[Route("")]
-        public IActionResult GetClientReservations([FromRoute] int clientId)
+        [Route("clientReservations")]
+        public IActionResult clientReservations()
         {
-            var client = _context.Clients.FirstOrDefault(c => c.ClientId == clientId);
+            int userId = Int32.Parse(UserId().ToString());
+            var client = _context.Clients.FirstOrDefault(c => c.ClientId == userId);
             if (client == null) return NotFound();
-           // List<Reservation> reservations = (List<Reservation>) client.Reservations;
+            // List<Reservation> reservations = (List<Reservation>) client.Reservations;
             else
             {
                 return new JsonResult(client.Reservations);

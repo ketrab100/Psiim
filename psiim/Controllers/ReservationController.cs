@@ -4,6 +4,7 @@ using Serilog;
 using psiim.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace psiim.Controllers
 {
@@ -54,16 +55,17 @@ namespace psiim.Controllers
         /// <summary>
         /// Tworzenie rezerwacji na konkretny stół danego dnia
         /// </summary>
-        /// <param name="dateTime"></param>
-        /// <param name="table"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = "Client")]
         [Route("createReservation")]
-        public IActionResult CreateReservation(string dateTimeString, dynamic table)
+        public IActionResult CreateReservation([FromBody] dynamic data)
         {
+            dynamic deserialized = JObject.Parse(Convert.ToString(data));
+            dynamic table = JObject.Parse(Convert.ToString(deserialized.table));
+            DateTime dateTime = deserialized.dataTime;
             int userId = Int32.Parse(UserId().ToString());
-            DateTime dateTime = Convert.ToDateTime(dateTimeString);
             Reservation reservation = new Reservation(userId, dateTime, 15.99, false, 1, _context.Clients.FirstOrDefault(c => c.ClientId == userId));
             try
             {

@@ -25,7 +25,7 @@ namespace psiim.Controllers
         [Route("getTables")]
         public IActionResult getTables(Club club)
         {
-            var tables = club.Tables.ToList();
+            var tables = club.Tables.Where(t=>t.Club == club).ToList();
             return new JsonResult(tables);
         }
         /// <summary>
@@ -71,6 +71,7 @@ namespace psiim.Controllers
             return new JsonResult(table);
 
         }
+        //do zmiany 
         [HttpPut("{updatedTable}")]
         public IActionResult updateTable(Table updatedTable)
         {
@@ -85,6 +86,7 @@ namespace psiim.Controllers
             }
             return new JsonResult(updatedTable);
         }
+        //???
         [HttpDelete("{table}")]
         public IActionResult deleteTable(Table table)
         {

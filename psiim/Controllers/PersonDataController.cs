@@ -23,7 +23,6 @@ namespace psiim.Controllers
         /// <summary>
         /// Zwraca informacje o kliencie  
         /// </summary>
-        /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getAccountData")]
@@ -60,7 +59,7 @@ namespace psiim.Controllers
                 var p = _context.PeopleData.FirstOrDefault(p => p.Login == peopleDatum.Login);
                 if (p != null)
                 {
-                    var json = Json("User with this login exist");
+                    var json = Json("User with this login exists");
                     json.StatusCode = 400;
                     return (json);
                 }

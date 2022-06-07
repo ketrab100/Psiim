@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using psiim.Models;
 using Microsoft.Extensions.Caching.Distributed;
+using Serilog;
 
 namespace psiim.Controllers
 {
@@ -19,7 +20,7 @@ namespace psiim.Controllers
         private IDistributedCache _cache;
         private IHttpContextAccessor _httpContextAccessor;
 
-        public TokenController(IConfiguration config, PSIIMBilardContext pSIIMBilardContext, IDistributedCache cache,IHttpContextAccessor httpContextAccessor)
+        public TokenController(IConfiguration config, PSIIMBilardContext pSIIMBilardContext, IDistributedCache cache, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = config;
             _context = pSIIMBilardContext;
@@ -37,7 +38,7 @@ namespace psiim.Controllers
             else
             {
                 Claim[] claims = { };
-                if (_context.Admins.FirstOrDefault(a=>a.PersonData == user) != null)
+                if (_context.Admins.FirstOrDefault(a => a.PersonData == user) != null)
                 {
                     claims = new[] {
                         new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
@@ -73,19 +74,44 @@ namespace psiim.Controllers
                 return Ok(new JwtSecurityTokenHandler().WriteToken(token));
             }
         }
-        [HttpGet]
-        [Authorize]
-        [Route("logout")]
-        public async Task<IActionResult> Logout()
+        protected string UserId()
         {
-            string token = _httpContextAccessor.HttpContext.Request.Headers["authorization"];
-            //await _cache.SetStringAsync(getKey(token), " ", new DistributedCacheEntryOptions { AbsoluteExpiration = DateTime.UtcNow });
-            return Ok();
+            var principal = HttpContext.User;
+            if (principal?.Claims != null)
+            {
+                foreach (var claim in principal.Claims)
+                {
+                    Log.Debug($"CLAIM TYPE: {claim.Type}; CLAIM VALUE: {claim.Value}");
+                }
+
+            }
+            return principal?.Claims?.SingleOrDefault(p => p.Type == "Id")?.Value;
         }
-        private string getKey(string token)
+        protected string UserLogin()
         {
-            string t = token.Split(" ").Last();
-            return ($"tokens:{t}:deactivated");
+            var principal = HttpContext.User;
+            if (principal?.Claims != null)
+            {
+                foreach (var claim in principal.Claims)
+                {
+                    Log.Debug($"CLAIM TYPE: {claim.Type}; CLAIM VALUE: {claim.Value}");
+                }
+
+            }
+            return principal?.Claims?.SingleOrDefault(p => p.Type == "UserName")?.Value;
+        }
+        protected string UserRole()
+        {
+            var principal = HttpContext.User;
+            if (principal?.Claims != null)
+            {
+                foreach (var claim in principal.Claims)
+                {
+                    Log.Debug($"CLAIM TYPE: {claim.Type}; CLAIM VALUE: {claim.Value}");
+                }
+
+            }
+            return principal?.Claims?.SingleOrDefault(p => p.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
         }
 
     }

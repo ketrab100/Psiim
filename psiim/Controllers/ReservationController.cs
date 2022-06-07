@@ -17,19 +17,11 @@ namespace psiim.Controllers
         {
             _context = pSIIMBilardContext;
         }
-        protected string UserId()
-        {
-            var principal = HttpContext.User;
-            if (principal?.Claims != null)  
-            {
-                foreach (var claim in principal.Claims)
-                {
-                    Log.Debug($"CLAIM TYPE: {claim.Type}; CLAIM VALUE: {claim.Value}");
-                }
 
-            }
-            return principal?.Claims?.SingleOrDefault(p => p.Type == "Id")?.Value;
-        }
+        /// <summary>
+        /// Zwraca rezeracje
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Authorize(Roles = "Admin")]
         [Route("getReservations")]
@@ -37,34 +29,16 @@ namespace psiim.Controllers
         {
             var reservations = _context.Reservations.ToList();
             return new JsonResult(reservations);
-            //[HttpGet]
-            //public IActionResult GetReservations()
-            //{
-            //    var reservations = _context.Reservations.ToList();
-            //    return new JsonResult(reservations);
-
-        //[HttpGet]
-        //public IActionResult GetReservations()
-        //{
-        //    var reservations = _context.Reservations.ToList();
-        //    return new JsonResult(reservations);
-           
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetReservationById([FromRoute] int id)
-        {
-            var reservation = _context.Reservations.FirstOrDefault(r => r.ReservationId.Equals(id));
-            if(reservation==null) return NotFound();
-            return new JsonResult(reservation);
-        }
+
         /// <summary>
         /// Tworzenie rezerwacji na konkretny stół danego dnia
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Client")]
         [Route("createReservation")]
         public IActionResult CreateReservation([FromBody] DateReservation dateReservation)
         {
@@ -80,25 +54,12 @@ namespace psiim.Controllers
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 500;
+                return json;
             }
             return new JsonResult(reservation);
-           
-        }
 
-        [HttpPut("{updatedReservation}")]
-        public IActionResult UpdateReservation([FromBody] Reservation updatedReservation)
-        {
-            try
-            {
-                _context.Reservations.Update(updatedReservation);
-                _context.SaveChanges(true);
-            }
-            catch (Exception e)
-            {
-                return new JsonResult(e);
-            }
-            return new JsonResult(updatedReservation);
         }
         /// <summary>
         /// Lista rezerwacji klienta
@@ -108,12 +69,14 @@ namespace psiim.Controllers
         [HttpGet]
         [Authorize(Roles = "Client")]
         [Route("clientReservations")]
-        public IActionResult clientReservations()
+        public IActionResult ClientReservations()
         {
             int userId = Int32.Parse(UserId().ToString());
-            var client = _context.Clients.FirstOrDefault(c => c.ClientId == userId);
-            if (client == null) return NotFound();
-            // List<Reservation> reservations = (List<Reservation>) client.Reservations;
+            var client = _context.Clients.Include(c => c.Reservations).FirstOrDefault(c => c.ClientId == userId);
+            if (client == null)
+            {
+                return NotFound();
+            }
             else
             {
                 return new JsonResult(client.Reservations);
@@ -122,74 +85,63 @@ namespace psiim.Controllers
         /// <summary>
         /// Usunięcie rezerwacji przez klienta
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="reservation"></param>
         /// <returns></returns>
-        [HttpDelete("{id}")]
+        [HttpDelete]
         [Authorize(Roles = "Client")]
-        //[Route("")]
-        public IActionResult DeleteReservation([FromRoute] int id)
+        [Route("deleteReservation")]
+        public IActionResult DeleteReservation([FromBody] Reservation reservation)
         {
-            var reservation = _context.Reservations.FirstOrDefault(r => r.ReservationId.Equals(id));
-            if(reservation==null) return NotFound();
-            try 
+            var res = _context.Reservations.FirstOrDefault(r => r.ReservationId == reservation.ReservationId);
+            if (res == null)
             {
-                _context.Reservations.Remove(reservation);
+                var json = Json("Reservation does not exist");
+                json.StatusCode = 500;
+                return json;
+            }
+            try
+            {
+                _context.Reservations.Remove(res);
                 _context.SaveChanges(true);
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 500;
+                return json;
             }
-            return new JsonResult(reservation);
+            return new JsonResult(res);
         }
+        /// <summary>
+        /// Zwraca niezaakceptowane rezerwacje 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Route("getUnacceptedReservations")]
         [Authorize(Roles = "Admin")]
         public IActionResult GetUnacceptedReservations()
         {
             var unaccepted = new List<Reservation>();
-            //int userId = Int32.Parse(UserId().ToString());
-            var reservations = _context.Reservations.Include(r=>r.Client).ToList();
-            //return new JsonResult(reservations);
-            //try
-            //{   
-            //    var admin = _context.Admins.FirstOrDefault(a => a.AdminId == userId);
-            //    var club = _context.Clubs.Include(t => t.Tables).Where(c => c.Admins.Contains(admin)).FirstOrDefault();
-            //    var tables = club.Tables;
-            //    var reservations = new List<Reservation>();
-            //    foreach (var table in tables)
-            //    {
-            //        var reservedTables = table.ReservedTables;
-            //        foreach(var reservedTable in reservedTables)
-            //        {
-            //            reservations.Add(reservedTable.Reservation);
-            //        }
-            //    }
-
+            int userId = Int32.Parse(UserId().ToString());
+            var reservations = _context.Reservations.ToList();
 
             foreach (var reservation in reservations)
+            {
+                if (reservation.IsAccepted == false)
                 {
-                    if(reservation.IsAccepted == false)
-                    {
-                        unaccepted.Add(reservation);
-                    }
+                    unaccepted.Add(reservation);
                 }
-               
-            //}
-            //catch(Exception e)
-            //{
-            //    return new JsonResult(e);
-            //}
+            }
+
             return new JsonResult(unaccepted);
         }
 
-   
+
         /// <summary>
         /// Akceptacja rezerwacji przez admina
         /// </summary>
         /// <param name="reservation"></param>
         /// <returns></returns>
-        
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [Route("acceptReservation")]
@@ -201,9 +153,11 @@ namespace psiim.Controllers
                 _context.Reservations.Update(reservation);
                 _context.SaveChanges(true);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 500;
+                return json;
             }
             return new JsonResult(reservation);
         }
@@ -215,7 +169,7 @@ namespace psiim.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [Route("denyReservation")]
-        public IActionResult denyReservation([FromBody]Reservation reservation)
+        public IActionResult denyReservation([FromBody] Reservation reservation)
         {
             try
             {
@@ -225,10 +179,25 @@ namespace psiim.Controllers
             }
             catch (Exception e)
             {
-                return new JsonResult(e);
+                var json = Json(e.Message);
+                json.StatusCode = 500;
+                return json;
             }
             return new JsonResult(reservation);
         }
+        protected string UserId()
+        {
+            var principal = HttpContext.User;
+            if (principal?.Claims != null)
+            {
+                foreach (var claim in principal.Claims)
+                {
+                    Log.Debug($"CLAIM TYPE: {claim.Type}; CLAIM VALUE: {claim.Value}");
+                }
+
+            }
+            return principal?.Claims?.SingleOrDefault(p => p.Type == "Id")?.Value;
+        }
     }
-    
+
 }

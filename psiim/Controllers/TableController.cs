@@ -188,5 +188,7 @@ namespace psiim.Controllers
             }
             return principal?.Claims?.SingleOrDefault(p => p.Type == "Id")?.Value;
         }
+
+       
     }
 }

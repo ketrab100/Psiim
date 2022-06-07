@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using psiim.Models;
@@ -37,6 +37,12 @@ namespace psiim.Controllers
         {
             var reservations = _context.Reservations.ToList();
             return new JsonResult(reservations);
+            //[HttpGet]
+            //public IActionResult GetReservations()
+            //{
+            //    var reservations = _context.Reservations.ToList();
+            //    return new JsonResult(reservations);
+
         //[HttpGet]
         //public IActionResult GetReservations()
         //{
@@ -141,49 +147,52 @@ namespace psiim.Controllers
         public IActionResult GetUnacceptedReservations()
         {
             var unaccepted = new List<Reservation>();
-            int userId = Int32.Parse(UserId().ToString());
-            try
-            {   
-                var admin = _context.Admins.FirstOrDefault(a => a.AdminId == userId);
-                var club = _context.Clubs.Include(t => t.Tables).Where(c => c.Admins.Contains(admin)).FirstOrDefault();
-                var tables = club.Tables;
-                var reservations = new List<Reservation>();
-                foreach (var table in tables)
-                {
-                    var reservedTables = table.ReservedTables;
-                    foreach(var reservedTable in reservedTables)
-                    {
-                        reservations.Add(reservedTable.Reservation);
-                    }
-                }
-                
+            //int userId = Int32.Parse(UserId().ToString());
+            var reservations = _context.Reservations.Include(r=>r.Client).ToList();
+            //return new JsonResult(reservations);
+            //try
+            //{   
+            //    var admin = _context.Admins.FirstOrDefault(a => a.AdminId == userId);
+            //    var club = _context.Clubs.Include(t => t.Tables).Where(c => c.Admins.Contains(admin)).FirstOrDefault();
+            //    var tables = club.Tables;
+            //    var reservations = new List<Reservation>();
+            //    foreach (var table in tables)
+            //    {
+            //        var reservedTables = table.ReservedTables;
+            //        foreach(var reservedTable in reservedTables)
+            //        {
+            //            reservations.Add(reservedTable.Reservation);
+            //        }
+            //    }
 
-                foreach (var reservation in reservations)
+
+            foreach (var reservation in reservations)
                 {
                     if(reservation.IsAccepted == false)
                     {
-                        unaccepted.Append(reservation);
+                        unaccepted.Add(reservation);
                     }
                 }
                
-            }
-            catch(Exception e)
-            {
-                return new JsonResult(e);
-            }
+            //}
+            //catch(Exception e)
+            //{
+            //    return new JsonResult(e);
+            //}
             return new JsonResult(unaccepted);
         }
 
-        [HttpPost("reservation")]
+   
         /// <summary>
         /// Akceptacja rezerwacji przez admina
         /// </summary>
         /// <param name="reservation"></param>
         /// <returns></returns>
-        [HttpPost("acceptReservation/{reservation}")]
+        
+        [HttpPost]
         [Authorize(Roles = "Admin")]
-        //[Route("acceptReservation")]
-        public IActionResult acceptReservation(Reservation reservation)
+        [Route("acceptReservation")]
+        public IActionResult acceptReservation([FromBody] Reservation reservation)
         {
             try
             {
@@ -202,10 +211,10 @@ namespace psiim.Controllers
         /// </summary>
         /// <param name="reservation"></param>
         /// <returns></returns>
-        [HttpPost("denyReservation/{reservation}")]
+        [HttpPost]
         [Authorize(Roles = "Admin")]
-        //[Route("denyReservation")]
-        public IActionResult denyReservation(Reservation reservation)
+        [Route("denyReservation")]
+        public IActionResult denyReservation([FromBody]Reservation reservation)
         {
             try
             {
